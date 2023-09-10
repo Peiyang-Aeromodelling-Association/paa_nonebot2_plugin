@@ -36,7 +36,7 @@ async def handle_welcome(bot: Bot, event: GroupIncreaseNoticeEvent):
         # send private message
         await bot.send_private_msg(user_id=event.user_id,
                                    group_id=event.group_id,
-                                   message=Message(f"欢迎加入北航航模协会！我是外联bot。\n"
+                                   message=Message(f"欢迎加入北洋小飞机协会！我是外联bot。\n"
                                                    f"报名二维码：[CQ:image,file=file:///{signup_qr_code_path}]\n"
                                                    f"公众号二维码：[CQ:image,file=file:///{wechat_qr_code_path}]\n"
                                                    f"文档：https://paa.abc235.site/documentation/\n"
