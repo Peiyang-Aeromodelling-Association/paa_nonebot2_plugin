@@ -47,5 +47,5 @@ async def handle_signup(bot: Bot, event: MessageEvent):
 
 @get_advertise.handle()
 async def handle_advertise(bot: Bot, event: MessageEvent):
-    video_path = os.path.join(resource_dir, "advertise.mp4")
+    video_path = os.path.join(resource_dir, "advertise_compressed.mp4")
     await get_advertise.send(message=Message(f"[CQ:video,file=file:///{video_path}]"))
