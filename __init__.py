@@ -1,10 +1,12 @@
 import os
+import nonebot
 from nonebot import on_message, on_command, on_notice
 from nonebot.log import logger
 from nonebot.adapters.onebot.v11 import Message
 from nonebot.params import CommandArg
 from nonebot.plugin import on_command
 
+from nonebot.adapters.onebot.v11.permission import GROUP_OWNER, GROUP_ADMIN
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupIncreaseNoticeEvent
 
 from nonebot.plugin import PluginMetadata
@@ -23,6 +25,8 @@ get_repo = on_command("仓库", priority=15, block=True)
 get_wechat = on_command("公众号", priority=15, block=True)
 get_signup = on_command("报名", priority=15, block=True)
 get_advertise = on_command("宣传片", priority=15, block=True)
+
+broadcast = on_command("broadcast", priority=15, block=True, permission=GROUP_OWNER | GROUP_ADMIN)
 
 # if a person joins the group 537857732, send a welcome message
 welcome = on_notice(priority=15, block=True)
@@ -70,3 +74,38 @@ async def handle_signup(bot: Bot, event: MessageEvent):
 async def handle_advertise(bot: Bot, event: MessageEvent):
     video_path = os.path.join(resource_dir, "advertise_compressed.mp4")
     await get_advertise.send(message=Message(f"[CQ:video,file=file:///{video_path}]"))
+
+
+@broadcast.handle()
+async def handle_broadcast(bot: Bot, event: MessageEvent, args: Message = CommandArg()):
+    # send message to all members in the group in private
+    msg = args.extract_plain_text()
+
+    logger.info(f"broadcast got message: {msg}")
+
+    if not msg:
+        await broadcast.finish("请输入要广播的内容")
+
+    group_id = event.group_id
+    member_list = await bot.get_group_member_list(group_id=group_id)
+
+    success_count = 0
+
+    self_id = nonebot.get_bot().self_id
+    logger.debug(f"broadcast self_id: {self_id}")
+
+    for member in member_list:
+        try:
+            if member["user_id"] == self_id:
+                continue
+
+            await bot.send_private_msg(user_id=member["user_id"],
+                                       group_id=group_id,
+                                       message=msg)
+            logger.info(f"broadcast sent message to user {member['user_id']} in group {group_id}")
+            success_count += 1
+        except nonebot.adapters.onebot.v11.exception.ActionFailed as e:
+            logger.error(f"broadcast failed to send message to user {member['user_id']} in group {group_id} with exception: {e}")
+            continue
+
+    await broadcast.finish(f"广播成功发送给{success_count}人")
