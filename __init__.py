@@ -1,4 +1,6 @@
 import os
+import time
+
 import nonebot
 from nonebot import on_message, on_command, on_notice
 from nonebot.log import logger
@@ -81,8 +83,6 @@ async def handle_broadcast(bot: Bot, event: MessageEvent, args: Message = Comman
     # send message to all members in the group in private
     msg = args.extract_plain_text()
 
-    logger.info(f"broadcast got message: {msg}")
-
     if not msg:
         await broadcast.finish("请输入要广播的内容")
 
@@ -93,6 +93,7 @@ async def handle_broadcast(bot: Bot, event: MessageEvent, args: Message = Comman
 
     self_id = nonebot.get_bot().self_id
     logger.debug(f"broadcast self_id: {self_id}")
+    logger.debug(f"broadcast to {len(member_list)} members in group {group_id} with message: {msg} ")
 
     for member in member_list:
         try:
@@ -102,6 +103,7 @@ async def handle_broadcast(bot: Bot, event: MessageEvent, args: Message = Comman
             await bot.send_private_msg(user_id=member["user_id"],
                                        group_id=group_id,
                                        message=msg)
+            time.sleep(1)  # TODO: avoid being blocked by server
             logger.info(f"broadcast sent message to user {member['user_id']} in group {group_id}")
             success_count += 1
         except nonebot.adapters.onebot.v11.exception.ActionFailed as e:
